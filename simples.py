@@ -5,18 +5,6 @@ class Node:
         self.state = state
         self.filhos = []
 
-def cadeiaVazia(stAtual,transicao):
-    #Pra uma transição só. Retorna os estados em que está
-    #Imaginando que tenha um estado com transicao vazia, ele está antes e após da transicao
-
-    #TODO: Remover porque nem ta sendo usado
-    estado = stAtual
-    l = [estado] 
-    while estado == transicao[0] and transicao[1] == 0:
-        estado = transicao[2]
-        l.append(estado)
-    return l
-
 def transicoesDoStateX(state,transicaoList):
     lista = []
     for transicao in transicaoList:
@@ -48,13 +36,16 @@ def compararTree(stNode,entradaTeste,transicaoList):
         for f in stNode.filhos:
             compararTree(f,entradaTeste[1:],transicaoList)
 
-def folhasTree(stNode):
+def folhasTree(stNode, lista=None):
     if stNode:
+        if lista is None:
+            lista = []            
         if len(stNode.filhos) == 0:
-            print(stNode, stNode.state)
+            lista.append(stNode.state)
         else:
             for f in stNode.filhos:
-                folhasTree(f)
+                folhasTree(f,lista)
+    return lista
 
 def checkFinalizadoAceito(finalizadoEm,aceitacaoList):
     for stFinalizado in finalizadoEm:
@@ -88,19 +79,14 @@ def main():
             stAtual = stInicial
             total = []
 
-            # TESTE
-            # root = Node(stInicial)
-            # compararTree(root,testeList[2],transicaoList)
-            # folhasTree(root)
+            for teste in testeList:
+                root = Node(stInicial)
+                compararTree(root,teste,transicaoList)
+                total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
 
-            # for teste in testeList:
-            #     root = Node(stInicial)
-            #     compararTree(root,testeList[2],transicaoList)
-            #     folhasTree(root)
-
-            # print("resultado: "," ".join(map(lambda x: str(x), total))) #TODO: pra usar o resultado do checkFinalizado Aceito
-            #TODO: resultado das folhas como uma lista, pra jogar no checkFinalizadoAceito
-            #TODO: Saida como arquivo           
+            w = " ".join(map(lambda x: str(x), total)) 
+            with open(nomeSaida,"a") as s:
+                s.write(f'{w}\n')
 
 if __name__ == "__main__":
     main()
