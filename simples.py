@@ -1,31 +1,64 @@
 import sys
 
-def existeTransicao(stAtual,digito,stDestino):
-    if stDestino:
-        if int(stDestino[2]) == 0 or stDestino.startswith(f'{stAtual} {digito}'):
-            return True
+class Node:
+    def __init__(self, state=None):
+        self.state = state
+        self.filhos = []
+
+def cadeiaVazia(stAtual,transicao):
+    #Pra uma transição só. Retorna os estados em que está
+    #Imaginando que tenha um estado com transicao vazia, ele está antes e após da transicao
+
+    #TODO: Remover porque nem ta sendo usado
+    estado = stAtual
+    l = [estado] 
+    while estado == transicao[0] and transicao[1] == 0:
+        estado = transicao[2]
+        l.append(estado)
+    return l
+
+def transicoesDoStateX(state,transicaoList):
+    lista = []
+    for transicao in transicaoList:
+        if state == transicao[0]:
+            lista.append(transicao)
+    return lista
+
+def existeTransicao(stAtual,digito,transicao):
+    if stAtual == transicao[0] and digito == transicao[1]:
+        return True
     return False
 
-def compararVTesteEstado(stAtual,teste,listaTransicao):
-    finaliza = [stAtual]
-    #FIXME: Nao consumir digito quando a cadeia lida eh vazia
+def existeTransicaoVazia(transicao):
+    if transicao[1] == 0:
+        return True
+    return False
+    
+def compararTree(stNode,entradaTeste,transicaoList):
+    #TODO: transicao no vazio quando nao tem mais elementos pra ler
+    if stNode and len(entradaTeste) > 0:
+        transicoesPossiveis = transicoesDoStateX(stNode.state, transicaoList) #dado um estado X
+        for t in transicoesPossiveis:
+            if existeTransicao(stNode.state,entradaTeste[0],t):
+                filho = Node(t[2])
+                stNode.filhos.append(filho)
+            if existeTransicaoVazia(t):
+                filho = Node(t[2])
+                compararTree(filho,entradaTeste,transicaoList)
+        for f in stNode.filhos:
+            compararTree(f,entradaTeste[1:],transicaoList)
 
-    for digito in teste:
-        stTempList = finaliza[:]
-        finaliza = []
-        stDestinoList = []
-        for stTemp in stTempList: 
-            for transicao in listaTransicao:
-                if int(transicao[0]) == stTemp and existeTransicao(stTemp,digito,transicao):
-                    stDestino = transicao[4]                    
-                    stDestinoList.append(stDestino)
-        stDestinoList = filter(lambda x: x not in finaliza, stDestinoList)
-        finaliza += map(lambda x : int(x), stDestinoList)
-    return finaliza
+def folhasTree(stNode):
+    if stNode:
+        if len(stNode.filhos) == 0:
+            print(stNode, stNode.state)
+        else:
+            for f in stNode.filhos:
+                folhasTree(f)
 
 def checkFinalizadoAceito(finalizadoEm,aceitacaoList):
     for stFinalizado in finalizadoEm:
-        if int(stFinalizado) in aceitacaoList:
+        if stFinalizado in aceitacaoList:
             return 1
     return 0
 
@@ -41,7 +74,8 @@ def main():
 
             numEstados, numSimbolos, numTransi, stInicial, numAceitacao = definicao
 
-            transiList = [f.readline().strip() for i in range(0,numTransi)]
+            transicaoList = [f.readline().strip().split(" ") for i in range(0,numTransi)]
+            transicaoList = [list(map(lambda x: int(x), c)) for c in transicaoList]
 
             numTestes = int(f.readline())
             testeList = []
@@ -53,12 +87,19 @@ def main():
 
             stAtual = stInicial
             total = []
-            
-            for teste in testeList:
-                stFinalizados = compararVTesteEstado(stAtual,teste,transiList)
-                foiAceito = checkFinalizadoAceito(stFinalizados,aceitacaoList)
-                total.append(foiAceito)
-            print("resultado: "," ".join(map(lambda x: str(x), total)))
+
+            # TESTE
+            # root = Node(stInicial)
+            # compararTree(root,testeList[2],transicaoList)
+            # folhasTree(root)
+
+            # for teste in testeList:
+            #     root = Node(stInicial)
+            #     compararTree(root,testeList[2],transicaoList)
+            #     folhasTree(root)
+
+            # print("resultado: "," ".join(map(lambda x: str(x), total))) #TODO: pra usar o resultado do checkFinalizado Aceito
+            #TODO: resultado das folhas como uma lista, pra jogar no checkFinalizadoAceito
             #TODO: Saida como arquivo           
 
 if __name__ == "__main__":
