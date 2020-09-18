@@ -1,9 +1,5 @@
 import sys
-
-class Node:
-    def __init__(self, state=None):
-        self.state = state
-        self.filhos = []
+from anytree import Node, RenderTree
 
 def transicoesDoStateX(state,transicaoList):
     lista = []
@@ -25,25 +21,24 @@ def existeTransicaoVazia(transicao):
 def compararTree(stNode,entradaTeste,transicaoList):
     #TODO: transicao no vazio quando nao tem mais elementos pra ler
     if stNode and len(entradaTeste) > 0:
-        transicoesPossiveis = transicoesDoStateX(stNode.state, transicaoList) #dado um estado X
+        transicoesPossiveis = transicoesDoStateX(stNode.name, transicaoList) #dado um estado X
         for t in transicoesPossiveis:
-            if existeTransicao(stNode.state,entradaTeste[0],t):
-                filho = Node(t[2])
-                stNode.filhos.append(filho)
+            if existeTransicao(stNode.name,entradaTeste[0],t):
+                filho = Node(t[2],parent=stNode)
             if existeTransicaoVazia(t):
                 filho = Node(t[2])
                 compararTree(filho,entradaTeste,transicaoList)
-        for f in stNode.filhos:
+        for f in stNode.children:
             compararTree(f,entradaTeste[1:],transicaoList)
 
 def folhasTree(stNode, lista=None):
     if stNode:
         if lista is None:
             lista = []            
-        if len(stNode.filhos) == 0:
-            lista.append(stNode.state)
+        if len(stNode.children) == 0:
+            lista.append(stNode.name)
         else:
-            for f in stNode.filhos:
+            for f in stNode.children:
                 folhasTree(f,lista)
     return lista
 
@@ -79,10 +74,16 @@ def main():
             stAtual = stInicial
             total = []
 
-            for teste in testeList:
-                root = Node(stInicial)
-                compararTree(root,teste,transicaoList)
-                total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
+            root = Node(stInicial)
+            compararTree(root,testeList[0],transicaoList)
+            print(RenderTree(root))
+            total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
+
+            # for teste in testeList:
+            #     root = Node(stInicial)
+            #     compararTree(root,teste,transicaoList)
+            #     print(RenderTree(root))
+            #     total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
 
             w = " ".join(map(lambda x: str(x), total)) 
             with open(nomeSaida,"a") as s:
