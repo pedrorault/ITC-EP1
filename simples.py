@@ -1,5 +1,6 @@
 import sys
 from anytree import Node, RenderTree
+#TODO: Tirar o anytree, só usei pra debugar mais facilmente
 
 def transicoesDoStateX(state,transicaoList):
     lista = []
@@ -17,27 +18,33 @@ def existeTransicaoVazia(transicao):
     if transicao[1] == 0:
         return True
     return False
-    
-def compararTree(stNode,entradaTeste,transicaoList):
-    #TODO: transicao no vazio quando nao tem mais elementos pra ler
-    #TODO: Estando em um estado e com coisa pra ler ainda, caso não haja transição,
-    # criar um filho com o state/name = None
-    if stNode and len(entradaTeste) > 0:
+
+def compararTesteTransicao(stNode,entradaTeste,transicaoList):
+    houveTransicao = False
+    if stNode:
         transicoesPossiveis = transicoesDoStateX(stNode.name, transicaoList) #dado um estado X
-        for t in transicoesPossiveis:
-            if existeTransicao(stNode.name,entradaTeste[0],t):
-                filho = Node(t[2],parent=stNode)
-                print(RenderTree(stNode))
-            if existeTransicaoVazia(t):
+        for t in transicoesPossiveis: #possivel juntar esse for com if, em um filter, pras transicoes vazias
+            if existeTransicaoVazia(t):                               
+                if len(entradaTeste) and existeTransicao(stNode.name,entradaTeste[0],t): 
+                    filho = Node(t[2], parent=stNode)
+                    compararTesteTransicao(filho,entradaTeste[1:],transicaoList) # faz consumindo
+
                 filho = Node(t[2], parent=stNode)
-                print(RenderTree(stNode))
-                compararTree(filho,entradaTeste,transicaoList)
-        for f in stNode.children:
-            compararTree(f,entradaTeste[1:],transicaoList)
+                compararTesteTransicao(filho,entradaTeste[0:],transicaoList) # faz não consumindo
+            else:
+                if len(entradaTeste) > 0:
+                    if existeTransicao(stNode.name,entradaTeste[0],t):
+                        filho = Node(t[2],parent=stNode)
+                        houveTransicao = True
+                        compararTesteTransicao(filho,entradaTeste[1:],transicaoList)
+                    elif not houveTransicao and stNode.name is not None: #elif nao houve transicao
+                        filho = Node(None,parent=stNode)
+                        compararTesteTransicao(filho,entradaTeste[1:],transicaoList) 
+                else:
+                    break
 
 def folhasTree(stNode, lista=None):
     #Ignorar as folhas com state/name = None (eq. a resposta de {})
-    #Referente ao TODO acima 
     if stNode:
         if lista is None:
             lista = []            
@@ -56,10 +63,10 @@ def checkFinalizadoAceito(finalizadoEm,aceitacaoList):
     return 0
 
 def main():
-    # nomeEntrada = sys.argv[2]
-    # nomeSaida = sys.argv[4]
+    nomeEntrada = sys.argv[2]
+    nomeSaida = sys.argv[4]
 
-    with open("./input3.txt") as f:
+    with open(nomeEntrada) as f:
         numAutomatos = int(f.readline())
         for i in range(0,numAutomatos):      
             definicao = map(lambda x : int(x), f.readline().replace("\t"," ").split(" "))
@@ -81,20 +88,16 @@ def main():
             stAtual = stInicial
             total = []
 
-            root = Node(stInicial)
-            compararTree(root,testeList[6],transicaoList)
-            print(RenderTree(root))
-            total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
-
-            # for teste in testeList:
-            #     root = Node(stInicial)
-            #     compararTree(root,teste,transicaoList)
-            #     print(RenderTree(root))
-            #     total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
+            for teste in testeList:
+                root = Node(stInicial)
+                compararTesteTransicao(root,teste,transicaoList)
+                # print(RenderTree(root))
+                total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
 
             w = " ".join(map(lambda x: str(x), total)) 
-            with open("tt","a") as s:
+            with open(nomeSaida,"a") as s:
                 s.write(f'{w}\n')
+                print(f'{w}\n')
 
 if __name__ == "__main__":
     main()
