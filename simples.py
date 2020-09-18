@@ -20,23 +20,30 @@ def existeTransicaoVazia(transicao):
     
 def compararTree(stNode,entradaTeste,transicaoList):
     #TODO: transicao no vazio quando nao tem mais elementos pra ler
+    #TODO: Estando em um estado e com coisa pra ler ainda, caso não haja transição,
+    # criar um filho com o state/name = None
     if stNode and len(entradaTeste) > 0:
         transicoesPossiveis = transicoesDoStateX(stNode.name, transicaoList) #dado um estado X
         for t in transicoesPossiveis:
             if existeTransicao(stNode.name,entradaTeste[0],t):
                 filho = Node(t[2],parent=stNode)
+                print(RenderTree(stNode))
             if existeTransicaoVazia(t):
-                filho = Node(t[2])
+                filho = Node(t[2], parent=stNode)
+                print(RenderTree(stNode))
                 compararTree(filho,entradaTeste,transicaoList)
         for f in stNode.children:
             compararTree(f,entradaTeste[1:],transicaoList)
 
 def folhasTree(stNode, lista=None):
+    #Ignorar as folhas com state/name = None (eq. a resposta de {})
+    #Referente ao TODO acima 
     if stNode:
         if lista is None:
             lista = []            
         if len(stNode.children) == 0:
-            lista.append(stNode.name)
+            if(stNode.name is not None):
+                lista.append(stNode.name)
         else:
             for f in stNode.children:
                 folhasTree(f,lista)
@@ -49,10 +56,10 @@ def checkFinalizadoAceito(finalizadoEm,aceitacaoList):
     return 0
 
 def main():
-    nomeEntrada = sys.argv[2]
-    nomeSaida = sys.argv[4]
+    # nomeEntrada = sys.argv[2]
+    # nomeSaida = sys.argv[4]
 
-    with open(nomeEntrada) as f:
+    with open("./input3.txt") as f:
         numAutomatos = int(f.readline())
         for i in range(0,numAutomatos):      
             definicao = map(lambda x : int(x), f.readline().replace("\t"," ").split(" "))
@@ -75,7 +82,7 @@ def main():
             total = []
 
             root = Node(stInicial)
-            compararTree(root,testeList[0],transicaoList)
+            compararTree(root,testeList[6],transicaoList)
             print(RenderTree(root))
             total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
 
@@ -86,7 +93,7 @@ def main():
             #     total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
 
             w = " ".join(map(lambda x: str(x), total)) 
-            with open(nomeSaida,"a") as s:
+            with open("tt","a") as s:
                 s.write(f'{w}\n')
 
 if __name__ == "__main__":
