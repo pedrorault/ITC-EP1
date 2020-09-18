@@ -100,7 +100,6 @@ def main():
             for teste in testeList:
                 root = Node(stAtual)
                 compararTesteTransicao(root,teste,transicaoList)
-                # print(RenderTree(root))
                 total.append(checkFinalizadoAceito(folhasTree(root),aceitacaoList))
 
             w = " ".join(map(lambda x: str(x), total)) 
