@@ -51,7 +51,7 @@ def compararTesteTransicao(stNode, entradaTeste):
 
         for valor, estado in transicoes:
             if valor == 0:
-                digito = entradaTeste[0]
+                digito = entradaTeste[0] if type(entradaTeste) is list and len(entradaTeste) else entradaTeste
                 if len(entradaTeste) and digito == stNode.estadoObj.state:
                     filho = Node(estado)
                     stNode.filhos.append(filho)
