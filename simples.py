@@ -5,6 +5,7 @@ class Node:
     def __init__(self, state=None):
         self.state = state
         self.filhos = []
+        self.transicoesVazias = []
 
 
 def transicoesDoStateX(state, transicaoList):
@@ -36,20 +37,38 @@ def compararTesteTransicao(stNode, entradaTeste, transicaoList):
             if existeTransicaoVazia(t):
                 teste = entradaTeste
                 if len(teste) and temTransicao(stNode.state, teste[0], t):
+                    if t[2] not in stNode.transicoesVazias: 
+                        filho = Node(t[2])
+                        stNode.filhos.append(filho)
+                        filho.transicoesVazias = stNode.transicoesVazias
+                        filho.transicoesVazias.append(t[2])
+                        compararTesteTransicao(
+                            filho, entradaTeste[1:], transicaoList)
+                        # faz consumindo
+                    else: 
+                        filho = Node(None)
+                        stNode.transicoesVazias = []
+                        stNode.filhos.append(filho)
+                        compararTesteTransicao(
+                            filho, entradaTeste[1:], transicaoList)
+
+                if t[2] not in stNode.transicoesVazias: 
                     filho = Node(t[2])
+                    stNode.filhos.append(filho)   
+                    filho.transicoesVazias = stNode.transicoesVazias                                     
+                    filho.transicoesVazias.append(t[2])
+                    # faz não consumindo
+                    compararTesteTransicao(filho, entradaTeste[0:], transicaoList)
+                else: 
+                    filho = Node(None)
                     stNode.filhos.append(filho)
+                    stNode.transicoesVazias = []
                     compararTesteTransicao(
                         filho, entradaTeste[1:], transicaoList)
-                    # faz consumindo
-
-                filho = Node(t[2])
-                stNode.filhos.append(filho)
-
-                # faz não consumindo
-                compararTesteTransicao(filho, entradaTeste[0:], transicaoList)
             else:
                 if len(entradaTeste) > 0:
                     if temTransicao(stNode.state, entradaTeste[0], t):
+                        stNode.transicoesVazias = []
                         filho = Node(t[2])
                         stNode.filhos.append(filho)
 
@@ -59,6 +78,7 @@ def compararTesteTransicao(stNode, entradaTeste, transicaoList):
                     elif not houveTransicao and stNode.state is not None:
                         # elif nao houve transicao
                         filho = Node(None)
+                        stNode.transicoesVazias = []
                         stNode.filhos.append(filho)
                         compararTesteTransicao(
                             filho, entradaTeste[1:], transicaoList)
