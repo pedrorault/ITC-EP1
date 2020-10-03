@@ -44,32 +44,44 @@ def checkFinalizadoAceito(finalizadoEm, aceitacaoList):
     return 0
 
 
-def compararTesteTransicao(stNode, entradaTeste):
+def compararTesteTransicao(stNode, entradaTeste, loopCheckList):
+    # Somente na transicao no vazio adiciona na lista de loopCheck
+    # Em toda outra transicao zera a lista
+
+    # As comparacoes acabam quando nao ha mais transicao a ser feita,
+    # quando a entrada for vazia e nao tiver mais transicao no vazio
+    # a ser feita. (... no famoso else break)
+
     houveTransicao = False
     if stNode and stNode.estadoObj is not None:
         transicoes = stNode.estadoObj.transicoes
 
         for valor, estado in transicoes:
             if valor == 0:
-                digito = entradaTeste[0] if type(entradaTeste) is list and len(entradaTeste) else entradaTeste
+                digito = entradaTeste[0] if type(entradaTeste) is list and len(
+                    entradaTeste) else entradaTeste
                 if len(entradaTeste) and digito == stNode.estadoObj.state:
                     filho = Node(estado)
                     stNode.filhos.append(filho)
-                    compararTesteTransicao(filho, entradaTeste[1:])
-                filho = Node(estado)
-                stNode.filhos.append(filho)
-                compararTesteTransicao(filho, entradaTeste[0:])
+                    compararTesteTransicao(filho, entradaTeste[1:], [])
+                if stNode.estadoObj.state not in loopCheckList:
+                    filho = Node(estado)
+                    stNode.filhos.append(filho)
+                    loopCheckList.append(stNode.estadoObj.state)
+                    compararTesteTransicao(
+                        filho, entradaTeste[0:], loopCheckList[0:])
+
             else:
                 if len(entradaTeste):
                     if entradaTeste[0] == valor:
                         filho = Node(estado)
                         stNode.filhos.append(filho)
                         houveTransicao = True
-                        compararTesteTransicao(filho, entradaTeste[1:])
+                        compararTesteTransicao(filho, entradaTeste[1:], [])
                     elif not houveTransicao and estado.state is not None:
                         filho = Node(None)
                         stNode.filhos.append(filho)
-                        compararTesteTransicao(filho, entradaTeste[1:])
+                        compararTesteTransicao(filho, entradaTeste[1:], [])
                 else:
                     break
 
@@ -124,9 +136,10 @@ def testarAutomatos(automatosDict):
     for aut in automatosDict.keys():
         for teste in automatosDict[aut]:
             root = Node(aut.stInicial)
-            compararTesteTransicao(root, teste)
-            resultadoTestes.append(checkFinalizadoAceito(
-                folhasTree(root), aut.aceitacaoList))
+            compararTesteTransicao(root, teste, [])
+            foiAceito = checkFinalizadoAceito(
+                folhasTree(root), aut.aceitacaoList)
+            resultadoTestes.append(foiAceito)
         w = " ".join(map(lambda x: str(x), resultadoTestes))
         saida += w+"\n"
         resultadoTestes = []
